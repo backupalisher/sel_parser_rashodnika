@@ -42,30 +42,27 @@ class ModelReferences(object):
             df.to_csv(os.path.join('res', f'{brand_name}.csv'), index=False, mode='a', header=False, sep=";")
 
     def get_model_property(self):
-        for url in self.urls:
-            print(url[0])
-            analog_list = []
-            property_list = []
-            property_data = []
+        analog_list = []
+        property_list = []
+        property_data = []
 
-            self.driver.get(url[0])
-            brand_name = self.driver.find_element_by_xpath('/html/body/table[3]/tbody/tr/td[2]/h5[1]').text
-            model_name = self.driver.find_element_by_xpath('/html/body/table[3]/tbody/tr/td[2]/h5[2]').text
-            # model_name_en = self.driver.find_element_by_xpath('/html/body/table[3]/tbody/tr/td[2]/text()[2]')
-            model_analog = self.driver.find_element_by_xpath('/html/body/table[3]/tbody/tr/td[2]/ul')
-            property_table = self.driver.find_element_by_xpath('/html/body/table[3]/tbody/tr/td[2]/table[1]/tbody')
+        self.driver.get(self.urls)
+        brand_name = self.driver.find_element_by_xpath('/html/body/table[3]/tbody/tr/td[2]/h5[1]').text
+        model_name = self.driver.find_element_by_xpath('/html/body/table[3]/tbody/tr/td[2]/h5[2]').text
+        # model_name_en = self.driver.find_element_by_xpath('/html/body/table[3]/tbody/tr/td[2]/text()[2]')
+        model_analog = self.driver.find_element_by_xpath('/html/body/table[3]/tbody/tr/td[2]/ul')
+        property_table = self.driver.find_element_by_xpath('/html/body/table[3]/tbody/tr/td[2]/table[1]/tbody')
 
-            print(brand_name)
-            print(model_name)
-            ele = model_analog.find_elements_by_tag_name('li')
-            for m in ele:
-                analog_list.append(m.text)
+        print(model_name)
+        ele = model_analog.find_elements_by_tag_name('li')
+        for m in ele:
+            analog_list.append(m.text)
 
-            for row in property_table.find_elements_by_tag_name('tr'):
-                property_list.append([td.text for td in row.find_elements_by_tag_name('td')])
+        for row in property_table.find_elements_by_tag_name('tr'):
+            property_list.append([td.text for td in row.find_elements_by_tag_name('td')])
 
-            property_data.append([brand_name, model_name, analog_list, property_list])
+        property_data.append([brand_name, model_name, analog_list, property_list])
 
-            fn = re.sub(r'\s.*', '', model_name)
-            df = pandas.DataFrame(property_data)
-            df.to_csv(os.path.join('parse', f'{fn}.csv'), index=False, mode='a', header=False, sep=";")
+        fn = re.sub(r'\s.*', '', model_name)
+        df = pandas.DataFrame(property_data)
+        df.to_csv(os.path.join('parse', f'{fn}.csv'), index=False, mode='a', header=False, sep=";")
