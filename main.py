@@ -13,11 +13,11 @@ def get_link_cart_model():
     parser.parser()
 
 
-def get_model_property(urls):
-    for url in urls:
-        driver = webdriver.Chrome()
-        parser = ModelReferences(driver, url)
-        parser.parser()
+def get_model_property():
+    urls = load_urls()
+    driver = webdriver.Chrome()
+    parser = ModelReferences(driver, urls)
+    parser.parser()
 
 
 def load_file_list():
@@ -46,8 +46,7 @@ def load_urls():
 
 def main():
     # get_link_cart_model()
-    urls = load_urls()
-    get_model_property(urls)
+    get_model_property()
 
 
 if __name__ == '__main__':
