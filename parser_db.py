@@ -86,7 +86,9 @@ def parser():
             dict_partcode_opt_id_caption = db_utils.insert_spr_cartridge_options(str(text[0]).replace("'", "`").replace('"', '`'))
             dict_partcode_opt_id_option = db_utils.insert_spr_cartridge_options(str(text[1]).replace("'", "`").replace('"', '`'))
             if dict_partcode_id and dict_partcode_opt_id_caption and dict_partcode_opt_id_option:
-                db_utils.link_cartridge_options(dict_partcode_opt_id_caption, dict_partcode_opt_id_option)
+                link_id = db_utils.link_cartridge_options(dict_partcode_opt_id_caption, dict_partcode_opt_id_option)
+                if link_id:
+                    db_utils.link_partcode_options(partcode_id, link_id)
 
         for n in cart_ref:
             if n[0] == 'Part No.':

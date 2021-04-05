@@ -50,15 +50,6 @@ def link_cartridge_model_analog(partcode_id, supplies_analog_model_id):
     db.i_request(f'INSERT INTO link_supplies_model_analog (partcode_id, supplies_analog_model_id) '
                  f'VALUES({partcode_id}, {supplies_analog_model_id})')
 
-"""q = db.i_request(f"WITH s as (SELECT id FROM link_dictionary_model_options WHERE "
-                     f"dictionary_model_caption_id = {dictionary_model_caption_id} AND "
-                     f"dictionary_model_option_id = {dictionary_model_option_id} AND "
-                     f"parent_id = {parent_id}), "
-                     f"i as (INSERT INTO link_dictionary_model_options (dictionary_model_caption_id, "
-                     f"dictionary_model_option_id, parent_id) "
-                     f"SELECT {dictionary_model_caption_id}, {dictionary_model_option_id}, {parent_id} "
-                     f"WHERE NOT EXISTS (SELECT 1 FROM s) returning id) SELECT id FROM i UNION ALL SELECT id FROM s")
-    return q[0][0]"""
 
 def insert_spr_cartridge_options(text):
     q = db.i_request(f'WITH s as (SELECT id FROM dictionary_partcode_options '
@@ -72,8 +63,16 @@ def insert_spr_cartridge_options(text):
 
 
 def link_cartridge_options(dictionary_partcode_caption_id, dictionary_partcode_option_id):
-    db.i_request(f'INSERT INTO link_dictionary_partcode_options (dictionary_partcode_caption_id, dictionary_partcode_option_id) '
-                 f'VALUES({dictionary_partcode_caption_id}, {dictionary_partcode_option_id})')
+    q = db.i_request(f'WITH s as (SELECT id FROM link_dictionary_partcode_options '
+                     f'WHERE dictionary_partcode_caption_id = {dictionary_partcode_caption_id} AND '
+                     f'dictionary_partcode_option_id = {dictionary_partcode_option_id}), '
+                     f'i as (INSERT INTO link_dictionary_partcode_options (dictionary_partcode_caption_id, dictionary_partcode_option_id) '
+                     f'SELECT {dictionary_partcode_caption_id}, {dictionary_partcode_option_id} WHERE NOT EXISTS (SELECT 1 FROM s) RETURNING id) '
+                     f'SELECT id FROM i UNION ALL SELECT id FROM s')
+    if q:
+        return q[0][0]
+    else:
+        return 0
 
 
 # def get_code_id(code):
@@ -128,3 +127,7 @@ def get_dict_partcode_id(code_name_en):
 def update_dict_partcode(dict_partcode_id, code_name_ru):
     db.i_request(f"UPDATE dictionary_partcode SET name_ru = '{code_name_ru}' "
                  f"WHERE id = {dict_partcode_id}")
+
+
+def link_partcode_options(partcode_id, link_id):
+    db.i_request(f"INSERT INTO link_partcode_options (partcode_option_id, partcode_dictionary_id) VALUES ({link_id}, {partcode_id})")
