@@ -1,11 +1,11 @@
 import psycopg2
 
 con = psycopg2.connect(
-    database="part4_test",
+    database="part4_dev",
     user="part4",
     password="part4_GfhjkzYtn321",
-    # host="116.203.219.63",
-    host="localhost",
+    host="116.203.219.63",
+    # host="localhost",
     port="5432"
 )
 
@@ -17,9 +17,10 @@ def i_request(q):
         cur.execute(q)
         data = cur.fetchall()
     except psycopg2.DatabaseError as err:
-        if err.pgerror:
-            print("Error: ", err)
-            print("Query: ", q)
+        # if err.pgerror:
+        #     print("Error: ", err)
+        #     print("Query: ", q)
+        pass
     else:
         return data
     finally:
