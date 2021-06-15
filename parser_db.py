@@ -12,7 +12,7 @@ def load_log():
     pars_file_list = []
     with open("log_console.log", "r") as file:
         for line in file:
-            pars_file_list.append(re.sub('.*] parse', '', line).strip().replace('\\', ''))
+            pars_file_list.append(re.sub('.*] parse/', '', line).strip().replace('\\', ''))
     return pars_file_list
 
 
@@ -76,30 +76,48 @@ def parser():
             break
 
         model_analogs = ast.literal_eval(data_lists[0][3])
-        cart_ref = ast.literal_eval(data_lists[0][4])
+        # cart_ref = ast.literal_eval(data_lists[0][4])
 
         for model in model_analogs:
-            supplies_analog_model_id = \
-                db_utils.insert_supplies_analog_model(brand_id, re.sub(r'\([^)]*\)', '', model).strip())
-            if partcode_id and supplies_analog_model_id:
-                db_utils.link_supplies_model_analog(partcode_id, supplies_analog_model_id)
+            model_id = db_utils.get_model_id(brand_id, brand_name + ' ' + re.sub(r'\([^)]*\)', '', model).strip())
+            if model_id:
+                print('Linked: ', model_id, brand_name + ' ' + re.sub(r'\([^)]*\)', '', model).strip())
+                db_utils.link_model_supplies(model_id, partcode_id)
+            else:
+                model_id = db_utils.get_model_id(brand_id, re.sub(r'\([^)]*\)', '', model).strip())
+                if model_id:
+                    print('Linked: ', model_id, re.sub(r'\([^)]*\)', '', model).strip())
+                    db_utils.link_model_supplies(model_id, partcode_id)
+                else:
+                    model_id = db_utils.get_model_id(brand_id, brand_name + ' ' + re.sub(r'\([^)]*\)', '', model.replace('-', ' ')))
+                    if model_id:
+                        print('Linked: ', model_id, re.sub(r'\([^)]*\)', '', model.replace('-', ' ')))
+                        db_utils.link_model_supplies(model_id, partcode_id)
 
-        for text in cart_ref:
-            dict_partcode_opt_id_caption = db_utils.insert_dictionary_partcode_options(str(text[0]).replace("'", "`").replace('"', '`'))
-            dict_partcode_opt_id_option = db_utils.insert_dictionary_partcode_options(str(text[1]).replace("'", "`").replace('"', '`'))
-            if dict_partcode_id and dict_partcode_opt_id_caption and dict_partcode_opt_id_option:
-                link_id = db_utils.link_cartridge_options(dict_partcode_opt_id_caption, dict_partcode_opt_id_option)
-                if link_id:
-                    db_utils.link_partcode_options(partcode_id, link_id)
 
-        for n in cart_ref:
-            if n[0] == 'Part No.':
-                carts = [x.strip() for x in n[1].split(',') if x]
-                for cart in carts:
 
-                    cart = re.sub(rf'{brand_name}|\n', ' ', cart).strip()
-                    if partcode != cart:
-                        cartridge_analog_id = db_utils.get_supplies_id(cart)
-                        if cartridge_analog_id and partcode_id:
-                            db_utils.link_supplies_analog(partcode_id, cartridge_analog_id)
+        # for model in model_analogs:
+        #     supplies_analog_model_id = \
+        #         db_utils.insert_supplies_analog_model(brand_id, re.sub(r'\([^)]*\)', '', model).strip())
+        #     if partcode_id and supplies_analog_model_id:
+        #         db_utils.link_supplies_model_analog(partcode_id, supplies_analog_model_id)
+        #
+        # for text in cart_ref:
+        #     dict_partcode_opt_id_caption = db_utils.insert_dictionary_partcode_options(str(text[0]).replace("'", "`").replace('"', '`'))
+        #     dict_partcode_opt_id_option = db_utils.insert_dictionary_partcode_options(str(text[1]).replace("'", "`").replace('"', '`'))
+        #     if dict_partcode_id and dict_partcode_opt_id_caption and dict_partcode_opt_id_option:
+        #         link_id = db_utils.link_cartridge_options(dict_partcode_opt_id_caption, dict_partcode_opt_id_option)
+        #         if link_id:
+        #             db_utils.link_partcode_options(partcode_id, link_id)
+        #
+        # for n in cart_ref:
+        #     if n[0] == 'Part No.':
+        #         carts = [x.strip() for x in n[1].split(',') if x]
+        #         for cart in carts:
+        #
+        #             cart = re.sub(rf'{brand_name}|\n', ' ', cart).strip()
+        #             if partcode != cart:
+        #                 cartridge_analog_id = db_utils.get_supplies_id(cart)
+        #                 if cartridge_analog_id and partcode_id:
+        #                     db_utils.link_supplies_analog(partcode_id, cartridge_analog_id)
         logger.info(file)

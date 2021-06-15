@@ -13,6 +13,7 @@ cur = con.cursor()
 
 
 def i_request(q):
+    # print(q)
     try:
         cur.execute(q)
         data = cur.fetchall()

@@ -51,6 +51,11 @@ def link_supplies_model_analog(partcode_id, supplies_analog_model_id):
                  f'VALUES({partcode_id}, {supplies_analog_model_id})')
 
 
+def link_model_supplies(model_id, partcode_id):
+    db.i_request(f'INSERT INTO public.link_model_supplies (model_id, supplies_id) '
+                 f'VALUES({model_id}, {partcode_id});')
+
+
 def insert_dictionary_partcode_options(text):
     q = db.i_request(f'WITH s as (SELECT id FROM dictionary_partcode_options '
                      f'WHERE text_ru = \'{text}\'), i as (INSERT INTO dictionary_partcode_options (text_ru) '
@@ -121,4 +126,11 @@ def update_dict_partcode(dict_partcode_id, code_name_ru):
 
 
 def link_partcode_options(partcode_id, link_id):
-    db.i_request(f"INSERT INTO link_partcode_options (partcode_option_id, partcode_dictionary_id) VALUES ({link_id}, {partcode_id})")
+    db.i_request(
+        f"INSERT INTO link_partcode_options (partcode_option_id, partcode_dictionary_id) VALUES ({link_id}, {partcode_id})")
+
+
+def get_model_id(brand_id, model):
+    q = db.i_request(f"SELECT id FROM models WHERE brand_id = {brand_id} AND name ilike '%{model}%';")
+    if q:
+        return q[0][0]
