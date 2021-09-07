@@ -34,6 +34,10 @@ def get_brand_id(brand_name):
 #         return 0
 
 
+def select_brands():
+    return db.i_request(f"""SELECT * FROM brands;""")
+
+
 def insert_supplies_analog_model(brand_id, model):
     q = db.i_request(f'WITH s as (SELECT id FROM supplies_analog_model '
                      f'WHERE brand_id = {brand_id} AND model = \'{model}\'), '
@@ -125,12 +129,35 @@ def update_dict_partcode(dict_partcode_id, code_name_ru):
                  f"WHERE id = {dict_partcode_id}")
 
 
-def link_partcode_options(partcode_id, link_id):
-    db.i_request(
-        f"INSERT INTO link_partcode_options (partcode_option_id, partcode_dictionary_id) VALUES ({link_id}, {partcode_id})")
-
-
-def get_model_id(brand_id, model):
-    q = db.i_request(f"SELECT id FROM models WHERE brand_id = {brand_id} AND name ilike '%{model}%';")
+def get_dict_partcode_option_id(text_ru):
+    q = db.i_request(f"""SELECT * FROM dictionary_partcode_options WHERE text_ru = '{text_ru}'""")
     if q:
         return q[0][0]
+
+
+def get_option_id(dic_caption_id, dic_option_id):
+    q = db.i_request(f"""SELECT id FROM link_dictionary_partcode_options 
+    WHERE dictionary_partcode_caption_id = {dic_caption_id} AND dictionary_partcode_option_id = {dic_option_id};""")
+    if q:
+        return q[0][0]
+
+
+def link_partcode_options(option_id, partcode_id):
+    db.i_request(
+        f"INSERT INTO link_partcode_options (partcode_option_id, partcode_dictionary_id) VALUES ({option_id}, {partcode_id})")
+
+
+def link_partcode_analog(model_id, partcode_id):
+    db.i_request(f"""INSERT INTO link_partcode_model_analogue (model_id, partcode_id) 
+                    VALUES ({model_id}, {partcode_id});""")
+
+
+def get_model_id(brand_id, model, model_w):
+    fq = f"""SELECT id FROM models WHERE brand_id = {brand_id} 
+        AND (name ilike '%{model}%' or name ilike '%{model_w}%');"""
+    print(fq)
+    q = db.i_request(fq)
+    if q:
+        return q[0][0]
+    else:
+        return None

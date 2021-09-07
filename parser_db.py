@@ -1,4 +1,6 @@
 import ast
+import asyncio
+import datetime
 import os
 import re
 
@@ -6,6 +8,7 @@ from logzero import logger, logfile
 import pandas
 
 import db_utils
+from services.parse_file import parse, set_option, set_model_analog
 
 
 def load_log():
@@ -89,12 +92,11 @@ def parser():
                     print('Linked: ', model_id, re.sub(r'\([^)]*\)', '', model).strip())
                     db_utils.link_model_supplies(model_id, partcode_id)
                 else:
-                    model_id = db_utils.get_model_id(brand_id, brand_name + ' ' + re.sub(r'\([^)]*\)', '', model.replace('-', ' ')))
+                    model_id = db_utils.get_model_id(brand_id, brand_name + ' ' + re.sub(r'\([^)]*\)', '',
+                                                                                         model.replace('-', ' ')))
                     if model_id:
                         print('Linked: ', model_id, re.sub(r'\([^)]*\)', '', model.replace('-', ' ')))
                         db_utils.link_model_supplies(model_id, partcode_id)
-
-
 
         # for model in model_analogs:
         #     supplies_analog_model_id = \
@@ -121,3 +123,31 @@ def parser():
         #                 if cartridge_analog_id and partcode_id:
         #                     db_utils.link_supplies_analog(partcode_id, cartridge_analog_id)
         logger.info(file)
+
+
+async def init_parse():
+    tstart = datetime.datetime.now()
+    d_brands = db_utils.select_brands()
+    brands = {}
+    for b in d_brands:
+        brands.update({b[1]: b[0]})
+    file_list = load_file_list()
+    async_tasks = []
+    cnt = 0
+    for file in file_list:
+        # if cnt < 1000:
+        async_tasks.append(parse(file))
+        # cnt += 1
+    print(len(async_tasks))
+    results = await asyncio.gather(*async_tasks)
+    print('Set all pfiles:', len(results), str(datetime.datetime.now() - tstart))
+    tstart = datetime.datetime.now()
+    async_options = []
+    async_models = []
+    for res in results:
+        # if res['brand'] == 'HP':
+        #     print(res)
+        async_models.append(set_model_analog(res['model_analogs'], res['partcode'], res['brand'], brands))
+        # async_options.append(set_option(res['options'], res['partcode']))
+    await asyncio.gather(*async_models)
+    print('Set all model analogs:', len(results), str(datetime.datetime.now() - tstart))
